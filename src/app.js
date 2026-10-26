@@ -5,7 +5,7 @@ import * as db from './db.js';
 const KEY='laurel-aesthetics-v1';
 const uid=()=>crypto.randomUUID();
 const LIVE=!!db.sb;
-const PUBLIC=location.pathname.replace(/\/+$/,'').endsWith('/book');
+const PUBLIC=/\/book(\.html)?$/.test(location.pathname.replace(/\/+$/,''));
 const pad=n=>String(n).padStart(2,'0');
 const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const D=s=>new Date(s+'T00:00:00');

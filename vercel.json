@@ -1,4 +1,7 @@
 {
-  "rewrites": [{ "source": "/book", "destination": "/index.html" }, { "source": "/((?!assets/|icons/|sw.js|manifest.webmanifest).*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/book", "destination": "/book.html" },
+    { "source": "/((?!assets/|icons/|sw.js|manifest.webmanifest|book.html).*)", "destination": "/index.html" }
+  ],
   "headers": [{ "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }]
 }
