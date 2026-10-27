@@ -11,20 +11,8 @@
   --sans:"Jost","Helvetica Neue",Arial,sans-serif;
   --script:"Allura","Brush Script MT",cursive;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#151812; --surface:#1C2019; --tint:#262B21; --tint-2:#3A4130;
-  --accent:#AEBE93; --ink:#EEEDE6; --muted:#A8A697; --gold:#CDB487;
-  --line:#2D3327; --on-accent:#151812;
-  --leaf-1:#6F8160; --leaf-2:#9AA983; --leaf-3:#B5A688; --leaf-4:#8F7E60;
-  --taupe-1:#E6DACB; --taupe-2:#A8927C;
-  --ok:#8FC19B; --warn:#E2B46B; --bad:#E58E84; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#151812; --surface:#1C2019; --tint:#262B21; --tint-2:#3A4130;
-  --accent:#AEBE93; --ink:#EEEDE6; --muted:#A8A697; --gold:#CDB487;
-  --line:#2D3327; --on-accent:#151812;
-  --leaf-1:#6F8160; --leaf-2:#9AA983; --leaf-3:#B5A688; --leaf-4:#8F7E60;
-  --taupe-1:#E6DACB; --taupe-2:#A8927C;
-  --ok:#8FC19B; --warn:#E2B46B; --bad:#E58E84; color-scheme:dark}
+/* Always the white brand look, even when the phone is in dark mode. */
+:root{color-scheme:only light}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--sans)}
@@ -175,6 +163,7 @@ input[type=checkbox]{width:auto}
 .hero .loc{margin-top:14px;font-size:.68rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
 .tagl{margin-top:20px;font:500 .95rem/1.5 var(--display);letter-spacing:.32em;text-transform:uppercase;color:var(--ink)}
 .tagl i{font-style:normal;color:var(--gold);margin:0 .2em}
+@media (max-width:420px){.tagl{letter-spacing:.2em;font-size:.88rem}.hero .loc{letter-spacing:.18em}}
 .tagl span{display:inline-block;font-size:.72rem;letter-spacing:.34em;color:var(--muted);padding-top:6px;margin-top:6px;border-top:1px solid var(--gold);padding-inline:14px}
 .slogo{display:inline-flex;flex-direction:column;align-items:center;line-height:1;color:var(--ink)}
 .slogo .sn{font:500 5rem/0.9 var(--display);letter-spacing:.01em}
