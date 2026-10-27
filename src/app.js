@@ -1,5 +1,6 @@
 
 import * as db from './db.js';
+import { helpHTML } from './help.js';
 
 /* ---------- helpers ---------- */
 const KEY='laurel-aesthetics-v1';
@@ -213,7 +214,7 @@ function vToday(){
   const hr=new Date().getHours(),greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
   const ty=taxYear(t),prov2=`${ty.endYear}-02-28`;
   return `<div class="pagehead"><div><p class="script greet">${greet}</p><h1>${fmtLong(t)}</h1></div>
-    <div class="row">${LIVE?'<button class="btn" data-act="copyLink">Copy booking link</button>':''}<button class="btn pri" data-act="newBooking">+ New booking</button></div></div>
+    <div class="row"><button class="btn ghost" data-act="studioGo" data-id="help">Help</button>${LIVE?'<button class="btn" data-act="copyLink">Copy booking link</button>':''}<button class="btn pri" data-act="newBooking">+ New booking</button></div></div>
   <div class="kpis">
     ${kpi('Today',`${todays.length} booking${todays.length===1?'':'s'}`,todays.length?`First at ${todays[0].time}`:'Nothing booked yet')}
     ${kpi('Income this month',R0(inc),monthName(t))}
@@ -304,7 +305,7 @@ function vTax(){
 }
 
 function vStudio(){
-  const tabs=[['services','Services & prices'],['stock','Stock'],['planner','Planner'],['faq','Chatbot answers'],['settings','Settings']];
+  const tabs=[['services','Services & prices'],['stock','Stock'],['planner','Planner'],['faq','Chatbot answers'],['settings','Settings'],['help','Help']];
   let body='';
   if(U.studio==='services'){
     const cats=[...new Set(S.services.map(s=>s.cat))];
@@ -316,6 +317,8 @@ function vStudio(){
     body=panel('Planner',`<form data-form="task" class="row" style="margin-bottom:10px"><input name="text" placeholder="Add a task, e.g. Order wax strips" required><input name="due" type="date" style="max-width:160px"><button class="btn pri">Add</button></form>
       ${open.map(x=>`<div class="row" style="justify-content:space-between;flex-wrap:nowrap">${taskRow(x)}${btn('Remove','taskDel',x.id,'ghost')}</div>`).join('')||'<p class="empty">Nothing on the list.</p>'}
       ${done.length?`<p class="cat">Done</p>${done.map(x=>`<div class="row" style="justify-content:space-between;flex-wrap:nowrap">${taskRow(x)}${btn('Remove','taskDel',x.id,'ghost')}</div>`).join('')}`:''}`);
+  }else if(U.studio==='help'){
+    body=`<section class="panel"><div class="ph"><h3>How to use the app</h3></div>${helpHTML()}</section>`;
   }else if(U.studio==='faq'){
     body=`<p class="note" style="margin-bottom:14px">These are draft answers for the client chat. They are placeholders until the chatbot wording is agreed. <b>{{hours}}</b> and <b>{{prices}}</b> fill in automatically from your settings and price list.</p>`+
     panel('Chatbot answers',`<div class="list">${S.faq.map(f=>`<div class="li"><div><b style="font-weight:500">${h(f.q)}</b><div class="sub">${h(f.a.slice(0,110))}${f.a.length>110?'…':''}</div></div>${btn('Edit','faqEdit',f.id,'ghost')}</div>`).join('')}</div>`,btn('+ Add answer','faqEdit','','pri'));
