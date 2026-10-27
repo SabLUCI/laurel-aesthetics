@@ -8,7 +8,7 @@ export const aiChat = import.meta.env.VITE_AI_CHAT === 'on';
 
 const COLS = {
   providers: ['id', 'name', 'role', 'external', 'sort'],
-  services: ['id', 'name', 'cat', 'mins', 'price', 'provider_id', 'active'],
+  services: ['id', 'name', 'cat', 'mins', 'price', 'provider_id', 'active', 'description', 'addon', 'sort'],
   clients: ['id', 'name', 'phone', 'email', 'notes', 'created'],
   bookings: ['id', 'client_id', 'service_id', 'provider_id', 'date', 'time', 'mins', 'status', 'paid', 'method', 'amount', 'notes', 'source'],
   expenses: ['id', 'date', 'amount', 'cat', 'supplier', 'note', 'receipt_path', 'receipt_name'],
@@ -49,6 +49,7 @@ export async function loadAll() {
   names.forEach((t, i) => { S[t] = res[i + 1].data.map(fromRow); });
   S.providers.sort((a, b) => a.sort - b.sort);
   S.faq.sort((a, b) => a.sort - b.sort);
+  S.services.sort((a, b) => a.sort - b.sort);
   S.services = S.services.filter(s => s.active !== false);
   await signReceipts(S.expenses);
   return S;
@@ -92,10 +93,16 @@ export async function loadBusy(from, to) {
   return data.map(b => ({ id: crypto.randomUUID(), providerId: b.provider_id, date: b.date, time: b.time, mins: b.mins, status: 'confirmed' }));
 }
 export async function requestBooking(p) {
-  const { data, error } = await sb.rpc('request_booking', {
-    p_service: p.serviceId, p_date: p.date, p_time: p.time,
+  const args = {
+    p_service: p.serviceId, p_addons: p.extras || [], p_date: p.date, p_time: p.time,
     p_name: p.name, p_phone: p.phone, p_email: p.email || '', p_notes: p.notes || '',
-  });
+  };
+  let { data, error } = await sb.rpc('request_booking', args);
+  // Databases without the 0002 update don't know about extras yet.
+  if (error?.code === 'PGRST202') {
+    delete args.p_addons;
+    ({ data, error } = await sb.rpc('request_booking', args));
+  }
   if (error) throw error;
   return data;
 }

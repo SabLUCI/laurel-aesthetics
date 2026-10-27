@@ -14,8 +14,10 @@ Without Supabase settings it runs as an on-device demo with example data (`npm r
 ### 1. Supabase (database, login, receipts)
 
 1. Sign up at [supabase.com](https://supabase.com) and create a new project called `laurel-aesthetics`. Choose the region closest to South Africa that it offers, and save the database password somewhere safe.
-2. Open **SQL Editor**, paste in all of `supabase/migrations/0001_init.sql`, then click **Run**.
-3. Start a new query, paste in `supabase/seed.sql`, then click **Run**. This adds the starting price list, opening hours and FAQ answers. You can change all of them later in the app.
+2. Open **SQL Editor**, paste in all of `supabase/migrations/0001_init.sql`, then click **Run**. Do the same with `supabase/migrations/0002_menu.sql`.
+3. Start a new query, paste in `supabase/seed.sql`, then click **Run**. This adds both price lists (Laurel and Symm), opening hours and FAQ answers. You can change all of them later in the app.
+
+   **Already set up before the October 2026 menu?** Paste `supabase/menu-update.sql` into a new query and click **Run** instead. It adds the new columns, hides the old placeholder treatments and loads the new menus. The menus live in `src/menu.js`; `node scripts/menu-sql.mjs` prints them as SQL.
 4. Under **Authentication → Sign In / Providers**, turn off **Allow new users to sign up**. Only accounts you create can sign in to the studio side.
 5. Under **Authentication → Users**, click **Add user → Create new user**. Enter your sister's email and a password, and tick **Auto confirm user**.
 6. Back in **SQL Editor**, make that account studio staff. Use her email in place of the example address:

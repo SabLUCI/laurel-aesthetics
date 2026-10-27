@@ -15,7 +15,7 @@ const anthropic = new Anthropic(); // reads the ANTHROPIC_API_KEY secret
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-type Service = { name: string; cat: string; mins: number; price: number; providerId: string };
+type Service = { name: string; cat: string; mins: number; price: number; providerId: string; description?: string; addon?: boolean };
 type Provider = { id: string; name: string; external: boolean };
 type Faq = { q: string; a: string };
 
@@ -26,7 +26,8 @@ function hoursText(hours: (string[] | null)[]): string {
 function buildSystem(pub: { settings: Record<string, any>; services: Service[]; providers: Provider[]; faq: Faq[] }): string {
   const s = pub.settings;
   const ext = new Set(pub.providers.filter((p) => p.external).map((p) => p.id));
-  const line = (x: Service) => `- ${x.name}, ${x.mins} min, R${Math.round(x.price)}`;
+  const line = (x: Service) =>
+    `- ${x.name}${x.addon ? " (extra, added to another treatment)" : ""}, ${x.mins} min, R${Math.round(x.price)}${x.description ? `: ${x.description}` : ""}`;
   const own = pub.services.filter((x) => !ext.has(x.providerId));
   const nails = pub.services.filter((x) => ext.has(x.providerId));
   const cats = [...new Set(own.map((x) => x.cat))];
@@ -56,13 +57,14 @@ ${priceList}
 Opening hours:
 ${hoursText(s.hours)}
 
-${nails.length ? `Nails are done in the same space by ${externalNames}, an independent nail technician. Her treatments:\n${nails.map(line).join("\n")}\n` : ""}
+${s.policy ? `Cancellation policy: ${s.policy}\n` : ""}${s.menuNote ? `Also in studio: ${s.menuNote}\n` : ""}
+${nails.length ? `Nails are done in the same space by ${externalNames}, an independent nail technician. She has her own page on the booking site ("Nails by ${externalNames}" at the top). Her treatments:\n${nails.map(line).join("\n")}\n` : ""}
 Studio answers to common questions:
 ${faqs}
 
 What you do:
 - Answer questions about treatments, prices, hours, location, preparation and aftercare.
-- When someone wants to book, tell them to use the "Book a treatment" tab and say which treatment fits what they asked for.
+- When someone wants to book, tell them to use the "Book a treatment" tab (extras can be added after choosing a treatment) and say which treatment fits what they asked for.
 - Suggest a treatment only from the list above, and explain the difference between two in plain words when asked.
 
 What you never do:

@@ -1,7 +1,7 @@
 // In-app guide for the studio owner (Studio › Help). Keep button names in sync with app.js.
 const sections = [
   ['Getting started', `
-    <p><b>Open the app:</b> tap the pink Laurel icon on your home screen, or go to this website in Chrome or Safari. Sign in with your email and password. You stay signed in.</p>
+    <p><b>Open the app:</b> tap the white Laurel icon on your home screen, or go to this website in Chrome or Safari. Sign in with your email and password. You stay signed in.</p>
     <p><b>Put it on your home screen</b> (once):</p>
     <ul><li><b>Android:</b> in Chrome tap <b>⋮</b>, then <b>Add to Home screen</b>.</li>
     <li><b>iPhone:</b> in Safari tap the <b>Share</b> button, then <b>Add to Home Screen</b>.</li></ul>
@@ -35,12 +35,17 @@ const sections = [
     <p>The estimate is a guide only. Check it with your accountant.</p>`],
   ['Studio: prices, stock, planner, chatbot, settings', `
     <p><b>Change a price or treatment:</b> <b>Studio</b> › <b>Services &amp; prices</b> › <b>Edit</b> › change it › <b>Save</b>. Use <b>+ Add service</b> for something new. Clients see changes straight away.</p>
+    <p>In the same screen you can add a <b>Short description</b>, tick <b>Extra only</b> for add-ons (clients add them to another treatment), and set the <b>Note under the heading</b> of a category. Set <b>Done by</b> to Symm for her nail treatments so they show on her page.</p>
     <p><b>Stock:</b> tap <b>−</b> or <b>+</b> to change counts. <b>Edit</b> sets when it shows as <b>Low</b>.</p>
     <p><b>Planner:</b> type a task, pick a date, and tap <b>Add</b>. Tick it off when it's done.</p>
     <p><b>Chatbot answers:</b> tap <b>Edit</b> to change what the client chat says. Leave <b>{{hours}}</b> and <b>{{prices}}</b> as they are.</p>
-    <p><b>Settings</b> (do this first): add your <b>WhatsApp number for clients</b>, set your <b>Opening hours</b>, then tap <b>Save settings</b>. <b>Sign out</b> is also here.</p>`],
+    <p><b>Settings</b> (do this first): add your <b>WhatsApp number for clients</b>, set your <b>Opening hours</b>, then tap <b>Save settings</b>. The <b>Cancellation policy</b> and the <b>Note at the end of your menu</b> (Tapputi Perfumes) are here too. <b>Sign out</b> is also here.</p>`],
+  ["Symm's page and extras", `
+    <p>The booking page has two menus: yours and <b>Nails by Symm</b>. Clients tap the switch at the top, or swipe left and right, to move between them. Symm's bookings use her own diary times, so she and you can be booked at the same time.</p>
+    <p>After choosing a treatment, clients can tap extras (for example <b>Add on Dermaplane</b>). The booking then shows the extras in its notes, with the time and price added.</p>
+    <p>Symm can share her own link: your booking link with <b>#symm</b> at the end opens her page first.</p>`],
   ['Sharing your booking link', `
-    <p>On <b>Today</b>, tap <b>Copy booking link</b> and paste it into your WhatsApp status, Instagram bio or Google profile. Clients book in their browser, with nothing to download.</p>`],
+    <p>On <b>Today</b>, tap <b>Copy booking link</b> and paste it into your WhatsApp status, Instagram bio or Google profile. Clients book in their browser, with nothing to download. For Symm, add <b>#symm</b> to the end of the link.</p>`],
 ];
 
 export const helpHTML = () => sections.map(([title, body], i) =>

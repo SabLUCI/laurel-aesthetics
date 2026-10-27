@@ -1,9 +1,10 @@
 
 import * as db from './db.js';
 import { helpHTML } from './help.js';
+import { menuItems, catNotes, POLICY, MENU_NOTE } from './menu.js';
 
 /* ---------- helpers ---------- */
-const KEY='laurel-aesthetics-v1';
+const KEY='laurel-aesthetics-v2';
 const uid=()=>crypto.randomUUID();
 const LIVE=!!db.sb;
 const PUBLIC=/\/book(\.html)?$/.test(location.pathname.replace(/\/+$/,''));
@@ -35,15 +36,8 @@ function seed(){
   const providers=[
     {id:'p1',name:'Laurel Aesthetics',role:'Skin & beauty treatments',external:false},
     {id:'p2',name:'Symm',role:'Nail technician (rents the space)',external:true}];
-  const services=[
-    ['Signature facial','Facials',60,650,'p1'],['Express hydrating facial','Facials',30,380,'p1'],
-    ['Dermaplaning','Skin treatments',45,550,'p1'],['Chemical peel','Skin treatments',45,750,'p1'],
-    ['Microneedling','Skin treatments',75,1200,'p1'],['Lash lift & tint','Lashes & brows',60,480,'p1'],
-    ['Brow lamination & tint','Lashes & brows',45,420,'p1'],['Full leg wax','Waxing',45,380,'p1'],
-    ['Underarm wax','Waxing',15,120,'p1'],
-    ['Rubber base overlay','Nails with Symm',60,320,'p2'],['Gel polish (hands)','Nails with Symm',45,250,'p2'],
-    ['Builder gel (BIAB)','Nails with Symm',75,380,'p2'],['Classic French add-on','Nails with Symm',15,60,'p2']
-  ].map(([name,cat,mins,price,providerId])=>({id:uid(),name,cat,mins,price,providerId}));
+  const services=menuItems().map(({who,desc,...m})=>({id:uid(),...m,description:desc,providerId:who==='symm'?'p2':'p1'}));
+  const main=services.filter(x=>!x.addon);
   const clients=[
     ['Anika van der Merwe','082 555 0141','Sensitive skin. Prefers fragrance-free products.'],
     ['Lerato Mokoena','071 555 0192','Monthly facial. Likes Saturday mornings.'],
@@ -60,7 +54,7 @@ function seed(){
     const date=addDays(t,d),dow=D(date).getDay(); if(dow===0) continue;
     const n=dow===6?2:1+Math.floor(rnd()*3), used=new Set();
     for(let k=0;k<n;k++){
-      const s=services[Math.floor(rnd()*services.length)];
+      const s=main[Math.floor(rnd()*main.length)];
       const time=times[Math.floor(rnd()*(dow===6?3:times.length))];
       if(used.has(time+s.providerId)) continue; used.add(time+s.providerId);
       const c=clients[Math.floor(rnd()*clients.length)];
@@ -82,9 +76,9 @@ function seed(){
     {id:uid(),date:day(m0,1),amount:2500,desc:'Space rental: Symm',method:'EFT'},
     {id:uid(),date:day(m0,12),amount:420,desc:'Retail: hydrating serum',method:'Card'}];
   return {
-    v:1, example:true,
+    v:2, example:true,
     settings:{business:'Laurel Aesthetics',tagline:"It's all about you",address:'Silver Lakes Golf Estate, Pretoria East',
-      whatsapp:'',email:'',vatThreshold:1000000,slotStep:30,
+      whatsapp:'',email:'',vatThreshold:1000000,slotStep:30,policy:POLICY,menuNote:MENU_NOTE,catNotes:catNotes(),
       hours:[null,['08:00','17:00'],['08:00','17:00'],['08:00','17:00'],['08:00','17:00'],['08:00','17:00'],['08:00','13:00']]},
     budget:{'Rent':6500,'Stock & products':4000,'Consumables':1200,'Equipment':500,'Marketing':800,'Utilities & Wi-Fi':700,'Insurance':400,'Training':1000,'Bank fees':150,'Other':300},
     providers,services,clients,bookings,expenses,sales,
@@ -103,15 +97,16 @@ function seed(){
       {id:uid(),q:'Where are you?',kw:'where location address find directions silver lakes estate gate access parking',a:"We're inside Silver Lakes Golf Estate, Pretoria East. It's a secure estate, so please bring your ID and give your name at the gate. We'll register you as a visitor once your booking is confirmed."},
       {id:uid(),q:'How much does it cost?',kw:'price prices cost costs much menu rate rates hoeveel prys',a:'{{prices}}'},
       {id:uid(),q:'How can I pay?',kw:'pay payment card cash eft snapscan',a:'We accept card, cash, EFT and SnapScan. Payment is due after your treatment.'},
-      {id:uid(),q:'What is your cancellation policy?',kw:'cancel cancellation reschedule late move change postpone',a:"Please give us at least 24 hours' notice to cancel or move your appointment. Late cancellations and no-shows may be charged 50% of the treatment price."},
+      {id:uid(),q:'What is your cancellation policy?',kw:'cancel cancellation reschedule late move change postpone',a:POLICY},
       {id:uid(),q:'How do I prepare for a facial or peel?',kw:'prepare preparation before facial peel retinol makeup',a:'Come with a clean face if you can. For a peel, dermaplaning or microneedling, stop retinol and exfoliating acids 3 to 5 days before, and avoid waxing the area.'},
       {id:uid(),q:'Can I have treatments while pregnant?',kw:'pregnant pregnancy breastfeeding',a:"Gentle facials are usually fine, but most peels and microneedling aren't recommended while pregnant or breastfeeding. Please mention it when you book so we can suggest the right treatment."},
       {id:uid(),q:'Do you sell gift vouchers?',kw:'voucher vouchers gift present birthday',a:"Yes. Gift vouchers are available for any treatment or amount. Ask us and we'll set one up for you."},
       {id:uid(),q:'Can men book treatments?',kw:'men man male guys husband boyfriend',a:'Yes, everyone is welcome. Facials, skin treatments, brows and waxing are all available to men.'},
-      {id:uid(),q:'Do you do nails?',kw:'nails nail gel rubber builder biab french manicure symm',a:'Nails are done in the same space by Symm, our resident nail technician. You can book her treatments here too.'}]
+      {id:uid(),q:'Do you do nails?',kw:'nails nail gel rubber builder biab french manicure symm',a:"Nails are done in the same space by Symm, our resident nail specialist. Tap Symm's page at the top of the booking page to see her menu and book."},
+      {id:uid(),q:'Do you sell perfume?',kw:'perfume perfumes tapputi oil oils scent fragrance gift',a:'Yes. We stock Tapputi Perfumes, a collection of 30 perfume oils inspired by ancient beauty rituals. Ask us in studio.'}]
   };
 }
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY));return s&&s.v===1?s:null}catch(e){return null}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));return s&&s.v===2?s:null}catch(e){return null}}
 let S=LIVE?{v:1,example:false,settings:{business:'Laurel Aesthetics',address:'Silver Lakes Golf Estate, Pretoria East',hours:[],whatsapp:''},budget:{},providers:[],services:[],clients:[],bookings:[],expenses:[],sales:[],stock:[],tasks:[],faq:[]}:(load()||seed());
 function save(){if(LIVE)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('This device ran out of storage. Remove some receipt photos and try again.')}}
 // Live mode: write one record to Supabase in the background; on failure reload so the screen matches the database.
@@ -120,11 +115,12 @@ function drop(table,id){if(!LIVE)return;db.remove(table,id).catch(err=>{console.
 function syncStudio(){if(!LIVE)return;db.saveStudio(S.settings,S.budget).catch(err=>{console.error(err);toast("Couldn't save settings.");reloadLive()})}
 async function reloadLive(){try{S=await db.loadAll();render()}catch(e){console.error(e)}}
 
-const U={auth:LIVE&&!PUBLIC?'checking':'ok',loading:LIVE,mode:PUBLIC?'client':'owner',view:'today',diaryDate:today(),month:today().slice(0,7),q:'',studio:'services',ctab:'book',
-  book:{svc:null,date:null,time:null,done:null},chat:[]};
+const U={auth:LIVE&&!PUBLIC?'checking':'ok',loading:LIVE,mode:PUBLIC?'client':'owner',view:'today',diaryDate:today(),month:today().slice(0,7),q:'',studio:'services',ctab:'book',cpage:'laurel',cdir:0,
+  book:{svc:null,date:null,time:null,done:null,extras:[]},chat:[]};
 if(location.hash==='#book'){U.mode='client'}
 const bookingLink=()=>LIVE?`${location.origin}/book`:'';
 if(location.hash==='#chat'){U.mode='client';U.ctab='chat'}
+if(location.hash==='#symm'){U.mode='client';U.cpage='symm'}
 
 const svc=id=>S.services.find(x=>x.id===id);
 const client=id=>S.clients.find(x=>x.id===id);
@@ -175,12 +171,17 @@ const ICONS={
   tax:'<svg viewBox="0 0 24 24"><path d="M6 2.5h9l4 4V21.5H6z"/><path d="M15 2.5v4h4M9 11h7M9 14.5h7M9 18h4"/></svg>',
   studio:'<svg viewBox="0 0 24 24"><path d="M12 21c-4.5-2.6-7-6.2-7-10.2C5 6.6 8.2 3.5 12 3c3.8.5 7 3.6 7 7.8 0 4-2.5 7.6-7 10.2z"/><path d="M12 7v14"/></svg>'};
 const logo=(cls='')=>`<span class="logo ${cls}" aria-label="Laurel Aesthetics"><span class="lw">La<span class="lu">u</span>rel</span><span class="la">AESTHETICS</span><span class="lt">IT'S ALL ABOUT YOU</span></span>`;
-const leaf=(cls='')=>`<svg class="leaf ${cls}" viewBox="0 0 160 120" aria-hidden="true" fill="none" stroke="var(--gold)" stroke-width="1.1" stroke-linecap="round">
-  <path d="M6 116C46 92 86 70 150 22"/>
-  <path d="M40 96c-6-16-2-30 10-40 4 16 0 30-10 40z"/><path d="M40 96c3-12 6-24 10-40"/>
-  <path d="M70 76c-2-18 6-32 20-38 0 18-6 30-20 38z"/><path d="M70 76c5-13 11-26 20-38"/>
-  <path d="M100 56c2-18 12-28 28-30-4 16-14 26-28 30z"/><path d="M100 56c9-11 18-21 28-30"/>
-  <path d="M58 86c16 4 30 0 40-10-16-4-30 0-40 10z"/><path d="M88 66c16 2 28-4 36-14-16-2-28 4-36 14z"/></svg>`;
+// Corner sprigs of green and beige leaves, like the printed menu. Drawn once along curved stems.
+const LEAF_ART=(()=>{
+  const q=(p,t)=>[(1-t)**2*p[0]+2*(1-t)*t*p[2]+t*t*p[4],(1-t)**2*p[1]+2*(1-t)*t*p[3]+t*t*p[5]];
+  const ang=(p,t)=>{const dx=2*(1-t)*(p[2]-p[0])+2*t*(p[4]-p[2]),dy=2*(1-t)*(p[3]-p[1])+2*t*(p[5]-p[3]);return Math.atan2(dy,dx)*180/Math.PI};
+  const leaf=(x,y,a,l,c)=>`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a.toFixed(1)})"><path d="M0 0C${l*.22} ${-l*.3} ${l*.68} ${-l*.32} ${l} 0C${l*.68} ${l*.32} ${l*.22} ${l*.3} 0 0Z" fill="var(--leaf-${c})"/><path d="M${l*.08} 0Q${l*.5} ${-l*.03} ${l*.92} 0" stroke="var(--bg)" stroke-opacity=".45" stroke-width=".7" fill="none"/></g>`;
+  const sprig=(p,n,l,cols,w=1.1)=>{let o=`<path d="M${p[0]} ${p[1]}Q${p[2]} ${p[3]} ${p[4]} ${p[5]}" stroke="var(--leaf-1)" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+    for(let i=1;i<=n;i++){const t=.18+.78*i/n,[x,y]=q(p,t),a=ang(p,t),len=l*(1.1-.45*t),c=cols[i%cols.length];o+=leaf(x,y,a+(i%2?-48:48),len,c)}
+    const[x,y]=q(p,1);return o+leaf(x,y,ang(p,1),l*.62,cols[0])};
+  return sprig([4,206,40,120,128,52],7,40,[1,2,1,2])+sprig([0,204,92,190,178,140],6,34,[3,4,3,2])+sprig([10,206,8,140,46,70],5,30,[2,3,1]);
+})();
+const leaves=(cls='')=>`<svg class="leaves ${cls}" viewBox="0 0 200 200" aria-hidden="true">${LEAF_ART}</svg>`;
 const pill=s=>`<span class="pill ${s}">${({requested:'Request',confirmed:'Confirmed',done:'Done',cancelled:'Cancelled',noshow:'No-show',declined:'Declined'})[s]||s}</span>`;
 const btn=(label,act,id='',cls='')=>`<button class="btn sm ${cls}" data-act="${act}" data-id="${id}">${label}</button>`;
 const kpi=(label,val,sub,neg)=>`<div class="kpi"><span class="eyebrow">${label}</span><b class="${neg?'neg':''}">${val}</b><span class="sub">${sub||'&nbsp;'}</span></div>`;
@@ -300,7 +301,7 @@ function vTax(){
   </div><div class="col">
   ${panel('VAT registration',`<p class="num">${R0(roll)} turnover in the last 12 months</p><div class="bar" style="height:10px;margin:8px 0"><i style="width:${vp}%"></i></div>
     <p class="sub">Registration becomes compulsory once 12-month turnover passes ${R0(vt)}. Change the threshold in Studio › Settings if SARS updates it.</p>`)}
-  ${panel('Turnover tax',`<p class="sub" style="color:var(--cocoa)">While turnover stays under R1 million a year, ask your accountant whether SARS Turnover Tax is simpler for you. It replaces income tax and VAT with one small tax on turnover.</p>`)}
+  ${panel('Turnover tax',`<p class="sub" style="color:var(--ink)">While turnover stays under R1 million a year, ask your accountant whether SARS Turnover Tax is simpler for you. It replaces income tax and VAT with one small tax on turnover.</p>`)}
   </div></div>`;
 }
 
@@ -309,7 +310,7 @@ function vStudio(){
   let body='';
   if(U.studio==='services'){
     const cats=[...new Set(S.services.map(s=>s.cat))];
-    body=panel('Services & prices',cats.map(c=>`<p class="cat">${h(c)}</p><div class="list">${S.services.filter(s=>s.cat===c).map(s=>`<div class="li"><div><b style="font-weight:500">${h(s.name)}</b><div class="sub">${s.mins} min · ${h(prov(s.providerId)?.name||'')}</div></div><div class="row"><span class="num">${R0(s.price)}</span>${btn('Edit','svcEdit',s.id,'ghost')}</div></div>`).join('')}</div>`).join(''),btn('+ Add service','svcNew','','pri'));
+    body=panel('Services & prices',cats.map(c=>`<p class="cat">${h(c)}</p><div class="list">${S.services.filter(s=>s.cat===c).map(s=>`<div class="li"><div><b style="font-weight:500">${h(s.name)}</b><div class="sub">${s.mins} min · ${h(prov(s.providerId)?.name||'')}${s.addon?' · Extra':''}</div></div><div class="row"><span class="num">${R0(s.price)}</span>${btn('Edit','svcEdit',s.id,'ghost')}</div></div>`).join('')}</div>`).join(''),btn('+ Add service','svcNew','','pri'));
   }else if(U.studio==='stock'){
     body=panel('Stock',`<div class="list">${S.stock.map(x=>`<div class="li"><div><b style="font-weight:500">${h(x.name)}</b><div class="sub">Reorder at ${x.min}</div></div><div class="row">${x.qty<=x.min?'<span class="pill low">Low</span>':''}<span class="stockq">${btn('−','stockAdj',x.id+':-1')}<b>${x.qty}</b>${btn('+','stockAdj',x.id+':1')}</span>${btn('Edit','stockEdit',x.id,'ghost')}</div></div>`).join('')}</div>`,btn('+ Add item','stockEdit','','pri'));
   }else if(U.studio==='planner'){
@@ -328,6 +329,8 @@ function vStudio(){
       <label class="f">Business name<input name="business" value="${h(st.business)}"></label>
       <label class="f">WhatsApp number for clients<input name="whatsapp" value="${h(st.whatsapp)}" placeholder="e.g. 082 000 0000"></label></div>
       <label class="f">Address<input name="address" value="${h(st.address)}"></label>
+      <label class="f">Cancellation policy (shown on the booking pages)<textarea name="policy">${h(st.policy)}</textarea></label>
+      <label class="f">Note at the end of your menu (optional)<textarea name="menuNote">${h(st.menuNote)}</textarea></label>
       <div class="g2"><label class="f">Email<input name="email" type="email" value="${h(st.email)}"></label>
       <label class="f">VAT threshold (R)<input name="vatThreshold" type="number" min="0" value="${h(st.vatThreshold)}"></label></div></div>`)}
     ${panel('Opening hours',`<div class="fg">${[1,2,3,4,5,6,0].map(i=>{const hr=st.hours[i];return `<div class="g3"><label class="check"><input type="checkbox" name="open${i}" ${hr?'checked':''}> ${DAYS[i]}</label><input type="time" name="from${i}" value="${hr?hr[0]:'08:00'}" aria-label="${DAYS[i]} opens"><input type="time" name="to${i}" value="${hr?hr[1]:'17:00'}" aria-label="${DAYS[i]} closes"></div>`}).join('')}
@@ -349,25 +352,54 @@ function hoursText(){
 function pricesText(){const cats=[...new Set(S.services.map(s=>s.cat))];
   return cats.map(c=>`${c}\n`+S.services.filter(s=>s.cat===c).map(s=>`• ${s.name}: ${R0(s.price)}`).join('\n')).join('\n\n')}
 
+// Client pages: Laurel's own menu, and Symm's nail menu (anyone marked as running her own business). Swipe or tap to switch.
+const nailProv=()=>S.providers.find(p=>p.external);
+const onPage=x=>!!prov(x.providerId)?.external===(U.cpage==='symm');
+const pageSvcs=()=>S.services.filter(onPage);
+const extrasFor=s=>{const seen=new Set();return pageSvcs().filter(x=>x.addon&&x.providerId===s.providerId&&!seen.has(x.name)&&seen.add(x.name))};
+const bookTotal=(s,B)=>{const ex=(B.extras||[]).map(svc).filter(Boolean);return{ex,mins:s.mins+sum(ex.map(x=>({amount:x.mins}))),price:Number(s.price)+sum(ex.map(x=>({amount:x.price})))}};
+const newBook=()=>({svc:null,date:null,time:null,done:null,extras:[]});
+function setPage(pg){
+  if(pg===U.cpage||(pg==='symm'&&!nailProv()))return;
+  U.cdir=pg==='symm'?1:-1;U.cpage=pg;U.book=newBook();
+  try{history.replaceState(null,'',location.pathname+location.search+(pg==='symm'?'#symm':(U.mode==='client'&&!PUBLIC?'#book':'')))}catch(e){}
+}
 function vClient(){
-  return `<section class="hero">${leaf()}${leaf('r')}${logo('lg')}<p class="loc">${h(S.settings.address)}</p></section>
+  const np=nailProv(),symm=U.cpage==='symm'&&np,anim=U.cdir;U.cdir=0;
+  const hero=symm
+    ?`<span class="slogo" aria-label="${h(np.name)}, nail specialist at ${h(S.settings.business)}"><span class="sn">${h(np.name)}</span><span class="la">NAIL SPECIALIST</span><span class="lt">AT ${h(S.settings.business).toUpperCase()}</span></span>
+      <p class="tagl">Nails <i>•</i> Hands <i>•</i> Feet<br><span>Confidence always</span></p>`
+    :`${logo('lg')}<p class="tagl">Skin <i>•</i> Beauty <i>•</i> Nails<br><span>Confidence always</span></p>`;
+  return `${np?`<div class="pswitch" role="tablist" aria-label="Choose a menu"><div class="pstrack ${symm?'r':''}">
+    <button role="tab" aria-selected="${!symm}" class="${symm?'':'on'}" data-act="cpage" data-id="laurel">${h(S.settings.business)}</button>
+    <button role="tab" aria-selected="${!!symm}" class="${symm?'on':''}" data-act="cpage" data-id="symm">Nails by ${h(np.name)}</button></div></div>`:''}
+  <div class="pg${anim?anim>0?' in-r':' in-l':''}" id="cpage">
+  <section class="hero">${leaves()}${leaves('r')}${hero}<p class="loc">${h(S.settings.address)}</p></section>
   <div class="ctabs"><div class="seg"><button class="${U.ctab==='book'?'on':''}" data-act="ctab" data-id="book">Book a treatment</button><button class="${U.ctab==='chat'?'on':''}" data-act="ctab" data-id="chat">Ask a question</button></div></div>
-  <div class="cwrap">${U.ctab==='book'?vBook():vChat()}</div>
-  <p class="foot">${h(S.settings.business)} · ${h(S.settings.address)}</p>`;
+  <div class="cwrap">${U.ctab==='book'?vBook():vChat()}
+  ${S.settings.policy?`<div class="policy"><p class="cat">Cancellation policy</p><p>${h(S.settings.policy)}</p></div>`:''}
+  ${np&&U.ctab==='book'&&!U.book.svc?`<button class="other" data-act="cpage" data-id="${symm?'laurel':'symm'}">${symm?`<span>Skin, beauty and brows</span><b>${h(S.settings.business)} menu ›</b>`:`<span>Gel, rubber base, builder gel and acrylic</span><b>Nails by ${h(np.name)} ›</b>`}</button>`:''}</div>
+  <p class="foot">${h(S.settings.business)} · ${h(S.settings.address)}</p></div>`;
 }
 function vBook(){
-  const B=U.book;
-  if(B.done){const s=svc(B.done.serviceId);
+  const B=U.book,list=pageSvcs(),notes=S.settings.catNotes||{};
+  if(B.done){const s=svc(B.done.serviceId),ex=(B.done.extras||[]).map(svc).filter(Boolean);
     return `<div class="panel thanks"><p class="script">Thank you</p><h2 style="margin:6px 0 10px">Your request is in</h2>
-    <p>${h(s?.name)} on ${fmtLong(B.done.date)} at ${B.done.time}.</p><p class="muted" style="margin-top:8px">We'll confirm your booking on WhatsApp. Silver Lakes is a secure estate, so we'll register you at the gate once it's confirmed.</p>
+    <p>${h(s?.name)}${ex.length?' with '+ex.map(x=>h(x.name)).join(', '):''} on ${fmtLong(B.done.date)} at ${B.done.time}.</p><p class="muted" style="margin-top:8px">We'll confirm your booking on WhatsApp. Silver Lakes is a secure estate, so we'll register you at the gate once it's confirmed.</p>
     <p style="margin-top:18px"><button class="btn" data-act="bookReset">Book something else</button></p></div>`}
-  if(!B.svc){const cats=[...new Set(S.services.map(s=>s.cat))];
-    return `<div class="step"><h2><span class="script">Choose</span> your treatment</h2>${cats.map(c=>`<p class="cat">${h(c)}</p>${S.services.filter(s=>s.cat===c).map(s=>`<button class="svc" data-act="pickSvc" data-id="${s.id}"><span><b>${h(s.name)}</b><br><span class="sub">${s.mins} min${prov(s.providerId)?.external?' · with '+h(prov(s.providerId).name):''}</span></span><span class="pr">${R0(s.price)}</span></button>`).join('')}`).join('')}</div>`}
-  const s=svc(B.svc),t=today();
-  const days=[...Array(21)].map((_,i)=>addDays(t,i));
-  if(!B.date) B.date=days.find(d=>slotsFor(d,s).length)||t;
-  const sl=slotsFor(B.date,s);
-  return `<div class="chosen"><span><b>${h(s.name)}</b><br><span class="sub">${s.mins} min · ${R0(s.price)}</span></span>${btn('Change','bookBack','svc','ghost')}</div>
+  if(!B.svc){const cats=[...new Set(list.map(s=>s.cat))];
+    return `<div class="step"><h2><span class="script">Choose</span> your treatment</h2>${cats.map(c=>`<p class="cat">${h(c)}</p>${notes[c]?`<p class="catnote">${h(notes[c])}</p>`:''}${list.filter(s=>s.cat===c).map(s=>s.addon
+      ?`<div class="svc addon"><span><b>${h(s.name)}</b><br><span class="sub">${s.description?h(s.description)+' · ':''}Add it when you book a treatment</span></span><span class="pr">${R0(s.price)}</span></div>`
+      :`<button class="svc" data-act="pickSvc" data-id="${s.id}"><span><b>${h(s.name)}</b><br><span class="sub">${s.description?h(s.description)+' · ':''}${s.mins} min</span></span><span class="pr">${R0(s.price)}</span></button>`).join('')}`).join('')||'<p class="empty">No treatments listed yet.</p>'}
+      ${U.cpage!=='symm'&&S.settings.menuNote?`<p class="menunote">${h(S.settings.menuNote)}</p>`:''}</div>`}
+  const s=svc(B.svc),t=today(),tot=bookTotal(s,B),extras=extrasFor(s);
+  const days=[...Array(21)].map((_,i)=>addDays(t,i)),span={...s,mins:tot.mins};
+  if(!B.date) B.date=days.find(d=>slotsFor(d,span).length)||t;
+  const sl=slotsFor(B.date,span);
+  if(B.time&&!sl.includes(B.time))B.time=null;
+  return `<div class="chosen"><span><b>${h(s.name)}</b><br><span class="sub">${tot.mins} min · ${R0(tot.price)}${tot.ex.length?' with extras':''}</span></span>${btn('Change','bookBack','svc','ghost')}</div>
+  ${extras.length?`<div class="step"><h2><span class="script">Add</span> an extra?</h2><div class="extras">${extras.map(x=>{const on=(B.extras||[]).includes(x.id);
+    return `<button class="xtra ${on?'on':''}" aria-pressed="${on}" data-act="toggleExtra" data-id="${x.id}">${on?'✓ ':'+ '}${h(x.name)} <span>${R0(x.price)}</span></button>`}).join('')}</div></div>`:''}
   <div class="step"><h2><span class="script">Pick</span> a day</h2><div class="days">${days.map(d=>{const open=!!S.settings.hours[D(d).getDay()];
     return `<button class="day ${d===B.date?'on':''}" data-act="pickDate" data-id="${d}" ${open?'':'disabled'}><small>${D(d).toLocaleDateString('en-ZA',{weekday:'short'})}</small><b>${+d.slice(8)}</b><i>${D(d).toLocaleDateString('en-ZA',{month:'short'})}</i></button>`}).join('')}</div></div>
   <div class="step"><h2><span class="script">and</span> a time</h2>${sl.length?`<div class="slots">${sl.map(x=>`<button class="slot ${x===B.time?'on':''}" data-act="pickTime" data-id="${x}">${x}</button>`).join('')}</div>`:'<p class="empty">No open times on this day. Try another day.</p>'}</div>
@@ -375,7 +407,7 @@ function vBook(){
     <div class="g2"><label class="f">Name and surname<input name="name" required autocomplete="name"></label><label class="f">Cell number (WhatsApp)<input name="phone" required type="tel" autocomplete="tel"></label></div>
     <label class="f">Email (optional)<input name="email" type="email" autocomplete="email"></label>
     <label class="f">Anything we should know? (allergies, pregnancy, first visit)<textarea name="notes"></textarea></label>
-    <label class="check"><input type="checkbox" required name="policy"> I understand that cancellations need 24 hours' notice.</label>
+    <label class="check"><input type="checkbox" required name="policy"> I understand that cancellations or rescheduling need 24 hours' notice.</label>
     <button class="btn pri" style="justify-self:start">Request ${fmtDate(B.date)} at ${B.time}</button></form></div>`:''}`;
 }
 function vChat(){
@@ -390,7 +422,7 @@ function botReply(q){
   const wa=S.settings.whatsapp?`WhatsApp us on ${S.settings.whatsapp}`:'contact the studio';
   if(/\d[\d -]{11,}\d/.test(t)) return{text:"Please don't share card or ID numbers in this chat. We don't take deposits here, and you pay at the studio after your treatment."};
   if(/\b(react|reaction|rash|red|redness|bump|bumpy|burn|burning|swollen|swelling|itch|itchy|infect|infection|blister|pain|sore|medication|roaccutane|accutane|isotretinoin|antibiotic)/.test(t)) return{text:`That needs our therapist to look at it in person, so please ${wa}. If a reaction is severe or getting worse, see a doctor straight away.`};
-  if(/\b(botox|filler|fillers|injectable|injection|lip)/.test(t)) return{text:"We don't offer Botox, fillers or other injectables. Our treatments are facials, skin treatments, lashes and brows, and waxing."};
+  if(/\b(botox|fillers?|injectables?|injections?)\b|lip ?fill/.test(t)) return{text:"We don't offer Botox, fillers or other injectables. Our treatments are facials and peels, waxing, brows and lashes, plasma skin tag removal, hands and feet, and massage."};
   if(/\b(guarantee|for sure|promise|definitely)\b/.test(t)) return{text:`Every skin is different, so we can't promise results. Our therapist can tell you in person what to expect, so please ${wa} for a consultation.`};
   const isCancel=/\b(cancel|cancellation|reschedule|postpone|kanselleer)/.test(t);
   if(!isCancel&&/\b(book|booking|appointment|afspraak|available|availability|slot)\b/.test(t)) return{text:"You can book right here: pick a treatment and a time that suits you, and we'll confirm on WhatsApp.",action:'book'};
@@ -469,11 +501,14 @@ function budgetModal(){
   modal('Monthly budget',`<div class="fg">${EXP_CATS.map(c=>`<label class="f">${c} (R)<input type="number" min="0" name="b_${c}" value="${S.budget[c]||0}"></label>`).join('')}</div>${foot('Save budget')}`,'budget');
 }
 function svcModal(s){
-  const isNew=!s;s=s||{name:'',cat:'Facials',mins:60,price:'',providerId:S.providers[0].id};
+  const isNew=!s;s=s||{name:'',cat:'',mins:60,price:'',description:'',addon:false,providerId:S.providers[0].id};
   modal(isNew?'Add service':'Edit service',`<label class="f">Name<input name="name" value="${h(s.name)}" required></label>
     <div class="g2"><label class="f">Category<input name="cat" value="${h(s.cat)}" list="cats" required><datalist id="cats">${[...new Set(S.services.map(x=>x.cat))].map(c=>`<option value="${h(c)}">`).join('')}</datalist></label>
     <label class="f">Done by<select name="providerId">${S.providers.map(p=>`<option value="${p.id}" ${p.id===s.providerId?'selected':''}>${h(p.name)}</option>`).join('')}</select></label></div>
     <div class="g2"><label class="f">Minutes<input type="number" name="mins" min="5" step="5" value="${s.mins}" required></label><label class="f">Price (R)<input type="number" name="price" min="0" step="1" value="${s.price}" required></label></div>
+    <label class="f">Short description (optional)<input name="description" value="${h(s.description)}" placeholder="e.g. Includes shape &amp; tint"></label>
+    <label class="check"><input type="checkbox" name="addon" ${s.addon?'checked':''}> Extra only: clients add it to another treatment instead of booking it on its own</label>
+    <label class="f">Note under the "${h(s.cat||'category')}" heading (optional)<input name="catNote" value="${h((S.settings.catNotes||{})[s.cat]||'')}"></label>
     ${foot(isNew?'Add service':'Save',isNew?'':`<button type="button" class="btn danger" data-act="svcDel" data-id="${s.id}" style="margin-right:auto">Delete</button>`)}`,'service',s.id||'');
 }
 function stockModal(x){
@@ -534,31 +569,35 @@ const FORMS={
   },
   sale(fd){const x={id:uid(),date:fd.get('date'),amount:Number(fd.get('amount')),desc:fd.get('desc'),method:fd.get('method')};S.sales.push(x);sync('sales',x);toast('Income added')},
   budget(fd){EXP_CATS.forEach(c=>S.budget[c]=Number(fd.get('b_'+c)||0));syncStudio();toast('Budget saved')},
-  service(fd,id){const d={name:fd.get('name'),cat:fd.get('cat'),providerId:fd.get('providerId'),mins:Number(fd.get('mins')),price:Number(fd.get('price'))};
-    let x;if(id)x=Object.assign(svc(id),d);else{x={id:uid(),...d,active:true};S.services.push(x)}sync('services',x);toast('Service saved')},
+  service(fd,id){const d={name:fd.get('name'),cat:fd.get('cat').trim(),providerId:fd.get('providerId'),mins:Number(fd.get('mins')),price:Number(fd.get('price')),description:fd.get('description').trim(),addon:!!fd.get('addon')};
+    let x;if(id)x=Object.assign(svc(id),d);else{x={id:uid(),...d,active:true,sort:Math.max(0,...S.services.map(y=>y.sort||0))+1};S.services.push(x)}sync('services',x);
+    const notes=S.settings.catNotes||(S.settings.catNotes={}),cn=fd.get('catNote').trim();
+    if(cn!==(notes[d.cat]||'')){if(cn)notes[d.cat]=cn;else delete notes[d.cat];syncStudio()}
+    toast('Service saved')},
   stock(fd,id){const d={name:fd.get('name'),qty:Number(fd.get('qty')),min:Number(fd.get('min'))};
     let x;if(id)x=Object.assign(S.stock.find(y=>y.id===id),d);else{x={id:uid(),...d};S.stock.push(x)}sync('stock',x)},
   faq(fd,id){const d={q:fd.get('q'),kw:fd.get('kw'),a:fd.get('a')};let x;if(id)x=Object.assign(S.faq.find(y=>y.id===id),d);else{x={id:uid(),...d,sort:S.faq.length};S.faq.push(x)}sync('faq',x);U.chat=[]},
   task(fd){const x={id:uid(),text:fd.get('text'),due:fd.get('due')||'',done:false};S.tasks.push(x);sync('tasks',x)},
-  settings(fd){const st=S.settings;['business','whatsapp','address','email'].forEach(k=>st[k]=fd.get(k));st.vatThreshold=Number(fd.get('vatThreshold'))||1000000;st.slotStep=Number(fd.get('slotStep'));
+  settings(fd){const st=S.settings;['business','whatsapp','address','email','policy','menuNote'].forEach(k=>st[k]=fd.get(k).trim());st.vatThreshold=Number(fd.get('vatThreshold'))||1000000;st.slotStep=Number(fd.get('slotStep'));
     st.hours=[0,1,2,3,4,5,6].map(i=>fd.get('open'+i)?[fd.get('from'+i),fd.get('to'+i)]:null);
     S.providers.forEach(p=>{p.name=fd.get('pname_'+p.id);p.role=fd.get('prole_'+p.id);p.external=!!fd.get('pext_'+p.id);sync('providers',p)});syncStudio();toast('Settings saved')},
   async clientBook(fd,_id,form){
-    const B=U.book,s=svc(B.svc);
+    const B=U.book,s=svc(B.svc),tot=bookTotal(s,B);
     if(LIVE){
       const btn=form.querySelector('button.pri');btn.disabled=true;btn.textContent='Sending…';
       try{
-        const bid=await db.requestBooking({serviceId:s.id,date:B.date,time:B.time,name:fd.get('name').trim(),phone:fd.get('phone'),email:fd.get('email'),notes:fd.get('notes')});
-        U.book={svc:null,date:null,time:null,done:{id:bid,serviceId:s.id,date:B.date,time:B.time}};
+        const bid=await db.requestBooking({serviceId:s.id,extras:B.extras,date:B.date,time:B.time,name:fd.get('name').trim(),phone:fd.get('phone'),email:fd.get('email'),notes:fd.get('notes')});
+        U.book={...newBook(),done:{id:bid,serviceId:s.id,extras:B.extras,date:B.date,time:B.time}};
         if(PUBLIC||!LIVE)S.bookings=await db.loadBusy(today(),addDays(today(),30));else await reloadLive();
       }catch(err){toast(err.message||'Something went wrong. Please try again.');btn.disabled=false;btn.textContent='Try again';return false}
       return;
     }
-    if(!slotsFor(B.date,s).includes(B.time)){toast('That time was just taken. Please pick another.');B.time=null;return}
+    if(!slotsFor(B.date,{...s,mins:tot.mins}).includes(B.time)){toast('That time was just taken. Please pick another.');B.time=null;return}
     const phone=fd.get('phone');let c=S.clients.find(x=>normPhone(x.phone)&&normPhone(x.phone)===normPhone(phone));
     if(!c){c={id:uid(),name:fd.get('name').trim(),phone,email:fd.get('email'),notes:'',created:today()};S.clients.push(c)}
-    const b={id:uid(),clientId:c.id,serviceId:s.id,providerId:s.providerId,date:B.date,time:B.time,status:'requested',paid:false,method:'',amount:s.price,notes:fd.get('notes'),source:'online'};
-    S.bookings.push(b);U.book={svc:null,date:null,time:null,done:b};
+    const b={id:uid(),clientId:c.id,serviceId:s.id,providerId:s.providerId,date:B.date,time:B.time,mins:tot.mins,status:'requested',paid:false,method:'',amount:tot.price,
+      notes:[tot.ex.length?'Extras: '+tot.ex.map(x=>x.name).join(', '):'',fd.get('notes')].filter(Boolean).join('\n'),source:'online'};
+    S.bookings.push(b);U.book={...newBook(),done:{...b,extras:B.extras}};
   },
   async chat(fd){const q=fd.get('q').trim();if(!q)return;U.chat.push({from:'me',text:q});
     if(LIVE&&db.aiChat){
@@ -581,7 +620,7 @@ document.addEventListener('submit',async e=>{
 /* ---------- actions ---------- */
 const findB=id=>S.bookings.find(b=>b.id===id);
 const ACT={
-  mode:id=>{U.mode=id;window.scrollTo(0,0)},
+  mode:id=>{U.mode=id;window.scrollTo(0,0);try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}},
   nav:id=>{U.view=id;window.scrollTo(0,0)},
   close:()=>{closeModal();return'keep'},
   newBooking:()=>{bookingModal();return'keep'},
@@ -631,11 +670,13 @@ const ACT={
   resetAsk:()=>{modal('Clear example data?',`<p>This removes the example clients, bookings, money records, stock and tasks so you can start with your own. Your services, prices, settings and chatbot answers stay.</p><div class="mf"><button class="btn" data-act="close">Keep examples</button><button class="btn pri" data-act="resetDo">Clear examples</button></div>`);return'keep'},
   resetDo:()=>{Object.assign(S,{clients:[],bookings:[],expenses:[],sales:[],stock:[],tasks:[],example:false});closeModal();toast('Example data cleared')},
   ctab:id=>{U.ctab=id},
-  pickSvc:id=>{U.book={svc:id,date:null,time:null,done:null}},
+  cpage:id=>{setPage(id);window.scrollTo({top:0,behavior:'smooth'})},
+  toggleExtra:id=>{const B=U.book;B.extras=B.extras.includes(id)?B.extras.filter(x=>x!==id):[...B.extras,id]},
+  pickSvc:id=>{U.book={...newBook(),svc:id}},
   pickDate:d=>{U.book.date=d;U.book.time=null},
   pickTime:t=>{U.book.time=t},
-  bookBack:()=>{U.book={svc:null,date:null,time:null,done:null}},
-  bookReset:()=>{U.book={svc:null,date:null,time:null,done:null}},
+  bookBack:()=>{U.book=newBook()},
+  bookReset:()=>{U.book=newBook()},
   chip:id=>{const f=S.faq.find(x=>x.id===id);U.chat.push({from:'me',text:f.q});U.chat.push({from:'bot',...botReply(f.q+' '+f.kw)})}
 };
 document.addEventListener('click',e=>{
@@ -654,10 +695,15 @@ document.addEventListener('input',e=>{
   if(e.target.dataset.input==='search'){U.q=e.target.value;const pos=e.target.selectionStart;render();const s=document.getElementById('clientSearch');s.focus();s.setSelectionRange(pos,pos)}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+// Swipe left or right on the client page to move between Laurel's and Symm's menus.
+let swipe=null;
+document.addEventListener('touchstart',e=>{const pg=e.target.closest('#cpage');swipe=pg&&!e.target.closest('.days,.chat,input,textarea,.ov')?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null},{passive:true});
+document.addEventListener('touchend',e=>{if(!swipe)return;const t=e.changedTouches[0],dx=t.clientX-swipe.x,dy=t.clientY-swipe.y;swipe=null;
+  if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.8){const before=U.cpage;setPage(dx<0?'symm':'laurel');if(U.cpage!==before){save();render()}}},{passive:true});
 
 /* ---------- render ---------- */
 function vLogin(){
-  return `<main class="wrap" style="max-width:420px;padding-block:48px"><div style="text-align:center;margin-bottom:28px">${logo('lg')}</div>
+  return `<main class="wrap" style="max-width:420px;padding-block:48px"><section class="hero" style="margin-bottom:16px">${leaves()}${leaves('r')}${logo('lg')}</section>
   ${U.auth==='checking'?'<p class="empty" style="text-align:center">Loading…</p>':`<form data-form="login" class="panel fg"><h2>Studio sign in</h2>
     ${U.auth==='notstaff'?'<p class="note">This account is not set up as studio staff yet. See the setup guide.</p>':''}
     <label class="f">Email<input id="loginEmail" name="email" type="email" autocomplete="username" required></label>
@@ -691,7 +737,7 @@ export async function boot(){
 
 function render(){
   if(LIVE&&!PUBLIC&&U.auth!=='ok'){document.getElementById('app').innerHTML=vLogin();return}
-  if(LIVE&&PUBLIC&&U.loading){document.getElementById('app').innerHTML=`<section class="hero">${logo('lg')}</section><p class="empty" style="text-align:center">Loading…</p>`;return}
+  if(LIVE&&PUBLIC&&U.loading){document.getElementById('app').innerHTML=`<section class="hero">${leaves()}${leaves('r')}${logo('lg')}</section><p class="empty" style="text-align:center">Loading…</p>`;return}
   const reqs=S.bookings.filter(b=>b.status==='requested').length;
   const tabs=[['today','Today'],['diary','Diary'],['clients','Clients'],['money','Money'],['tax','Tax'],['studio','Studio']];
   const owner=U.mode==='owner';
