@@ -166,7 +166,7 @@ input[type=checkbox]{width:auto}
 @media (max-width:420px){.tagl{letter-spacing:.2em;font-size:.88rem}.hero .loc{letter-spacing:.18em}}
 .tagl span{display:inline-block;font-size:.72rem;letter-spacing:.34em;color:var(--muted);padding-top:6px;margin-top:6px;border-top:1px solid var(--gold);padding-inline:14px}
 .slogo{display:inline-flex;flex-direction:column;align-items:center;line-height:1;color:var(--ink)}
-.slogo .sn{font:500 5rem/0.9 var(--display);letter-spacing:.01em}
+.slogo .sn{font:500 clamp(2.8rem,13vw,4.2rem)/0.95 var(--display);letter-spacing:.01em;margin-bottom:.12em}
 .slogo .la{font:400 .82rem/1 var(--sans);letter-spacing:.5em;padding-left:.5em;margin-top:.7em}
 .slogo .lt{font:400 .58rem/1 var(--sans);letter-spacing:.4em;padding-left:.4em;margin-top:.8em;color:var(--muted)}
 header.top:not([hidden])~main .pswitch{position:static}

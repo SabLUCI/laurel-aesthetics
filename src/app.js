@@ -56,7 +56,7 @@ function seed(){
     for(let k=0;k<n;k++){
       const s=main[Math.floor(rnd()*main.length)];
       const time=times[Math.floor(rnd()*(dow===6?3:times.length))];
-      if(used.has(time+s.providerId)) continue; used.add(time+s.providerId);
+      const st=toMin(time);if([...used].some(([pid,a,e])=>pid===s.providerId&&st<e&&a<st+s.mins)) continue; used.add([s.providerId,st,st+s.mins]);
       const c=clients[Math.floor(rnd()*clients.length)];
       const status=d<0?(rnd()<.07?'noshow':'done'):d===0?'confirmed':(rnd()<.22?'requested':'confirmed');
       bookings.push({id:uid(),clientId:c.id,serviceId:s.id,providerId:s.providerId,date,time,status,
@@ -113,7 +113,9 @@ function save(){if(LIVE)return;try{localStorage.setItem(KEY,JSON.stringify(S))}c
 function sync(table,obj){if(!LIVE)return;db.put(table,obj).catch(err=>{console.error(err);toast("Couldn't save that. Check your connection and try again.");reloadLive()})}
 function drop(table,id){if(!LIVE)return;db.remove(table,id).catch(err=>{console.error(err);toast("Couldn't delete that. Check your connection.");reloadLive()})}
 function syncStudio(){if(!LIVE)return;db.saveStudio(S.settings,S.budget).catch(err=>{console.error(err);toast("Couldn't save settings.");reloadLive()})}
-async function reloadLive(){try{S=await db.loadAll();render()}catch(e){console.error(e)}}
+async function reloadLive(){try{S=await db.loadAll();fixOwner();render()}catch(e){console.error(e)}}
+// The first person listed is always the studio owner: her treatments are on the main menu and count as income.
+function fixOwner(write){const o=S.providers[0];if(o&&o.external){o.external=false;if(write)sync('providers',o)}}
 
 const U={auth:LIVE&&!PUBLIC?'checking':'ok',loading:LIVE,mode:PUBLIC?'client':'owner',view:'today',diaryDate:today(),month:today().slice(0,7),q:'',studio:'services',ctab:'book',cpage:'laurel',cdir:0,
   book:{svc:null,date:null,time:null,done:null,extras:[]},chat:[]};
@@ -336,7 +338,8 @@ function vStudio(){
     ${panel('Opening hours',`<div class="fg">${[1,2,3,4,5,6,0].map(i=>{const hr=st.hours[i];return `<div class="g3"><label class="check"><input type="checkbox" name="open${i}" ${hr?'checked':''}> ${DAYS[i]}</label><input type="time" name="from${i}" value="${hr?hr[0]:'08:00'}" aria-label="${DAYS[i]} opens"><input type="time" name="to${i}" value="${hr?hr[1]:'17:00'}" aria-label="${DAYS[i]} closes"></div>`}).join('')}
       <label class="f">Booking slots every<select name="slotStep">${[15,30,45,60].map(n=>`<option value="${n}" ${+st.slotStep===n?'selected':''}>${n} minutes</option>`).join('')}</select></label></div>`)}
     ${panel('People working in the space',`<div class="fg">${S.providers.map(p=>`<div class="g2"><label class="f">Name<input name="pname_${p.id}" value="${h(p.name)}"></label><label class="f">Role<input name="prole_${p.id}" value="${h(p.role)}"></label>
-      <label class="check" style="grid-column:1/-1"><input type="checkbox" name="pext_${p.id}" ${p.external?'checked':''}> Runs her own business here (her treatment income isn't counted as yours)</label></div>`).join('<hr style="border:0;border-top:1px solid var(--line);width:100%">')}</div>`)}
+      ${p===S.providers[0]?`<p class="sub" style="grid-column:1/-1">This is you. Your treatments show on the main menu and count as your income.</p>`
+        :`<label class="check" style="grid-column:1/-1"><input type="checkbox" name="pext_${p.id}" ${p.external?'checked':''}> Rents the space and runs her own business (her treatments show on her own page, and her income isn't counted as yours)</label>`}</div>`).join('<hr style="border:0;border-top:1px solid var(--line);width:100%">')}</div>`)}
     <div class="row"><button class="btn pri">Save settings</button>${S.example?'<button type="button" class="btn danger" data-act="resetAsk">Clear example data</button>':''}${LIVE?'<button type="button" class="btn" data-act="logout">Sign out</button>':''}</div></form>`;
   }
   return `<div class="pagehead"><div><p class="eyebrow">Studio</p><h1>Run the studio</h1></div></div>
@@ -580,7 +583,7 @@ const FORMS={
   task(fd){const x={id:uid(),text:fd.get('text'),due:fd.get('due')||'',done:false};S.tasks.push(x);sync('tasks',x)},
   settings(fd){const st=S.settings;['business','whatsapp','address','email','policy','menuNote'].forEach(k=>st[k]=fd.get(k).trim());st.vatThreshold=Number(fd.get('vatThreshold'))||1000000;st.slotStep=Number(fd.get('slotStep'));
     st.hours=[0,1,2,3,4,5,6].map(i=>fd.get('open'+i)?[fd.get('from'+i),fd.get('to'+i)]:null);
-    S.providers.forEach(p=>{p.name=fd.get('pname_'+p.id);p.role=fd.get('prole_'+p.id);p.external=!!fd.get('pext_'+p.id);sync('providers',p)});syncStudio();toast('Settings saved')},
+    S.providers.forEach(p=>{p.name=fd.get('pname_'+p.id);p.role=fd.get('prole_'+p.id);p.external=p!==S.providers[0]&&!!fd.get('pext_'+p.id);sync('providers',p)});syncStudio();toast('Settings saved')},
   async clientBook(fd,_id,form){
     const B=U.book,s=svc(B.svc),tot=bookTotal(s,B);
     if(LIVE){
@@ -719,13 +722,13 @@ FORMS.login=async(fd)=>{
 };
 async function startOwner(){
   try{if(!(await db.isStaff())){U.auth='notstaff';render();return}
-    S=await db.loadAll();U.auth='ok';U.loading=false;render();
+    S=await db.loadAll();fixOwner(true);U.auth='ok';U.loading=false;render();
     db.onBookingChange(async p=>{const was=S.bookings.filter(b=>b.status==='requested').length;await reloadLive();
       if(p.eventType==='INSERT'&&S.bookings.filter(b=>b.status==='requested').length>was)toast('New booking request')});
   }catch(e){console.error(e);toast("Couldn't load your data. Check your connection.")}
 }
 async function startPublic(){
-  try{const pub=await db.loadPublic();Object.assign(S,pub);S.bookings=await db.loadBusy(today(),addDays(today(),30));U.loading=false;render()}
+  try{const pub=await db.loadPublic();Object.assign(S,pub);fixOwner();S.bookings=await db.loadBusy(today(),addDays(today(),30));U.loading=false;render()}
   catch(e){console.error(e);document.getElementById('app').innerHTML='<p class="empty" style="text-align:center;padding:40px">Bookings are not available right now. Please try again later.</p>'}
 }
 export async function boot(){

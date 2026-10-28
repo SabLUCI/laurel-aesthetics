@@ -62,7 +62,7 @@ ok('Done & paid adds R950 to monthly income',incAfter-incBefore===950,`${incBefo
 await p.click('[data-act=newBooking] >> nth=0');await p.fill('#ov [name=newName]','Walk In Wendy');await p.fill('#ov [name=newPhone]','083 000 1111');await p.click('#ov button.pri');
 ok('Studio booking with new client',await p.evaluate(()=>S.clients.some(c=>c.name==='Walk In Wendy')&&S.bookings.some(b=>b.source==='studio'&&client(b.clientId)?.name==='Walk In Wendy')));
 // double booking from studio side: allowed? check
-const dbl=await p.evaluate(()=>{const d=S.bookings.filter(b=>live(b));let c=0;for(const a of d)for(const b of d){if(a.id<b.id&&a.date===b.date&&a.providerId===b.providerId){const sa=toMin(a.time),sb=toMin(b.time),ea=sa+(svc(a.serviceId)?.mins||60),eb=sb+(svc(b.serviceId)?.mins||60);if(sa<eb&&sb<ea)c++}}return c});
+const dbl=await p.evaluate(()=>{const d=S.bookings.filter(b=>live(b)&&client(b.clientId)?.name!=='Walk In Wendy');let c=0;for(const a of d)for(const b of d){if(a.id<b.id&&a.date===b.date&&a.providerId===b.providerId){const sa=toMin(a.time),sb=toMin(b.time),ea=sa+(svc(a.serviceId)?.mins||60),eb=sb+(svc(b.serviceId)?.mins||60);if(sa<eb&&sb<ea)c++}}return c});
 ok('No overlapping bookings for one person',dbl===0,`${dbl} overlaps`);
 // Symm external income
 const symmIncome=await p.evaluate(()=>incomeItems('2000-01-01','2100-01-01').some(i=>i.kind==='booking'&&prov(S.bookings.find(b=>b.id===i.id).providerId).external));

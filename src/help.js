@@ -39,7 +39,7 @@ const sections = [
     <p><b>Stock:</b> tap <b>−</b> or <b>+</b> to change counts. <b>Edit</b> sets when it shows as <b>Low</b>.</p>
     <p><b>Planner:</b> type a task, pick a date, and tap <b>Add</b>. Tick it off when it's done.</p>
     <p><b>Chatbot answers:</b> tap <b>Edit</b> to change what the client chat says. Leave <b>{{hours}}</b> and <b>{{prices}}</b> as they are.</p>
-    <p><b>Settings</b> (do this first): add your <b>WhatsApp number for clients</b>, set your <b>Opening hours</b>, then tap <b>Save settings</b>. The <b>Cancellation policy</b> and the <b>Note at the end of your menu</b> (Tapputi Perfumes) are here too. <b>Sign out</b> is also here.</p>`],
+    <p><b>Settings</b> (do this first): under <b>People working in the space</b>, the first person is you. Tick <b>Rents the space</b> only for Symm. Then add your <b>WhatsApp number for clients</b>, set your <b>Opening hours</b>, then tap <b>Save settings</b>. The <b>Cancellation policy</b> and the <b>Note at the end of your menu</b> (Tapputi Perfumes) are here too. <b>Sign out</b> is also here.</p>`],
   ["Symm's page and extras", `
     <p>The booking page has two menus: yours and <b>Nails by Symm</b>. Clients tap the switch at the top, or swipe left and right, to move between them. Symm's bookings use her own diary times, so she and you can be booked at the same time.</p>
     <p>After choosing a treatment, clients can tap extras (for example <b>Add on Dermaplane</b>). The booking then shows the extras in its notes, with the time and price added.</p>
