@@ -44,6 +44,10 @@ const sections = [
     <p>The booking page has two menus: yours and <b>Nails by Symm</b>. Clients tap the switch at the top, or swipe left and right, to move between them. Symm's bookings use her own diary times, so she and you can be booked at the same time.</p>
     <p>After choosing a treatment, clients can tap extras (for example <b>Add on Dermaplane</b>). The booking then shows the extras in its notes, with the time and price added.</p>
     <p>Symm can share her own link: your booking link with <b>#symm</b> at the end opens her page first.</p>`],
+  ['Privacy and backups', `
+    <p>Clients must tick that they agree to you keeping their details before they can book online. They can open <b>How we look after your details</b> to read your privacy notice. Change its wording in <b>Studio</b> › <b>Settings</b>.</p>
+    <p><b>If a client asks you to delete her details:</b> <b>Clients</b> › tap her name › <b>Delete client</b> › <b>Delete</b>. Her name, number and notes are removed, and her upcoming bookings are cancelled. Past payments stay in your money records without a name.</p>
+    <p><b>Backups:</b> once a month, tap <b>Download a backup</b> (on <b>Today</b> when it's due, or in <b>Studio</b> › <b>Settings</b>). Save the file to Google Drive or email it to yourself. Keep your phone locked with a PIN, because the app stays signed in.</p>`],
   ['Sharing your booking link', `
     <p>On <b>Today</b>, tap <b>Copy booking link</b> and paste it into your WhatsApp status, Instagram bio or Google profile. Clients book in their browser, with nothing to download. For Symm, add <b>#symm</b> to the end of the link.</p>`],
 ];

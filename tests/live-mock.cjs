@@ -24,7 +24,7 @@ let p=await page('/book');
 ok('Public page loads services from Supabase',(await p.$$('button.svc')).length>40&&await p.isVisible('.pstrack [data-id=symm]'));
 ok('No studio switch on public page',!(await p.isVisible('[data-act=mode]')));
 await p.click('.svc >> nth=0');
-const pickAndSend=async n=>{await p.click(`.slot >> nth=${n}`);await p.fill('[name=name]','Test');await p.fill('[name=phone]','0821112222');await p.check('[name=policy]');await p.click('[data-form=clientBook] button.pri');await p.waitForTimeout(500)};
+const pickAndSend=async n=>{await p.click(`.slot >> nth=${n}`);await p.fill('[name=name]','Test');await p.fill('[name=phone]','0821112222');await p.check('[name=policy]');await p.check('[name=consent]');await p.click('[data-form=clientBook] button.pri');await p.waitForTimeout(500)};
 await pickAndSend(0);
 if(!(await p.isVisible('text=Your request is in'))){ok('Taken slot keeps the form open',await p.isVisible('[data-form=clientBook]'));await pickAndSend(1)}
 ok('Booking request sent through request_booking',calls.some(c=>c.includes('request_booking'))&&await p.isVisible('text=Your request is in'));

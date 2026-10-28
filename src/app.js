@@ -184,6 +184,17 @@ const LEAF_ART=(()=>{
   return sprig([4,206,40,120,128,52],7,40,[1,2,1,2])+sprig([0,204,92,190,178,140],6,34,[3,4,3,2])+sprig([10,206,8,140,46,70],5,30,[2,3,1]);
 })();
 const leaves=(cls='')=>`<svg class="leaves ${cls}" viewBox="0 0 200 200" aria-hidden="true">${LEAF_ART}</svg>`;
+// POPIA privacy notice shown on the booking page. Studio › Settings can replace it.
+const privacyText=()=>S.settings.privacy||`${S.settings.business} keeps your name, cell number, email and the notes you give us (such as allergies, pregnancy or skin conditions) only to book and safely do your treatments, and to contact you about your appointments. Only the studio can see them, and we never sell or share them. Ask us at any time to see, correct or delete your details${S.settings.whatsapp?` (WhatsApp ${S.settings.whatsapp})`:''}.`;
+const backupDue=()=>!S.example&&(!S.settings.lastBackup||S.settings.lastBackup<addDays(today(),-30));
+function downloadBackup(){
+  const strip=({receipt,...e})=>e;
+  const data={exported:new Date().toISOString(),app:'Laurel Aesthetics',settings:S.settings,budget:S.budget,providers:S.providers,services:S.services,
+    clients:S.clients,bookings:S.bookings,expenses:S.expenses.map(strip),sales:S.sales,stock:S.stock,tasks:S.tasks,faq:S.faq};
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));
+  a.download=`laurel-backup-${today()}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  S.settings.lastBackup=today();syncStudio();save();render();toast('Backup downloaded. Keep it somewhere safe.');
+}
 const pill=s=>`<span class="pill ${s}">${({requested:'Request',confirmed:'Confirmed',done:'Done',cancelled:'Cancelled',noshow:'No-show',declined:'Declined'})[s]||s}</span>`;
 const btn=(label,act,id='',cls='')=>`<button class="btn sm ${cls}" data-act="${act}" data-id="${id}">${label}</button>`;
 const kpi=(label,val,sub,neg)=>`<div class="kpi"><span class="eyebrow">${label}</span><b class="${neg?'neg':''}">${val}</b><span class="sub">${sub||'&nbsp;'}</span></div>`;
@@ -218,6 +229,7 @@ function vToday(){
   const ty=taxYear(t),prov2=`${ty.endYear}-02-28`;
   return `<div class="pagehead"><div><p class="script greet">${greet}</p><h1>${fmtLong(t)}</h1></div>
     <div class="row"><button class="btn ghost" data-act="studioGo" data-id="help">Help</button>${LIVE?'<button class="btn" data-act="copyLink">Copy booking link</button>':''}<button class="btn pri" data-act="newBooking">+ New booking</button></div></div>
+  ${backupDue()?`<p class="note row" style="justify-content:space-between;margin-bottom:14px"><span>${S.settings.lastBackup?"It's been a month since your last backup.":'Download your first backup of client and money records.'}</span><button class="btn sm" data-act="backup">Download a backup</button></p>`:''}
   <div class="kpis">
     ${kpi('Today',`${todays.length} booking${todays.length===1?'':'s'}`,todays.length?`First at ${todays[0].time}`:'Nothing booked yet')}
     ${kpi('Income this month',R0(inc),monthName(t))}
@@ -333,6 +345,7 @@ function vStudio(){
       <label class="f">Address<input name="address" value="${h(st.address)}"></label>
       <label class="f">Cancellation policy (shown on the booking pages)<textarea name="policy">${h(st.policy)}</textarea></label>
       <label class="f">Note at the end of your menu (optional)<textarea name="menuNote">${h(st.menuNote)}</textarea></label>
+      <label class="f">Privacy notice (shown on the booking pages; leave empty for the standard wording)<textarea name="privacy" placeholder="${h(privacyText())}">${h(st.privacy)}</textarea></label>
       <div class="g2"><label class="f">Email<input name="email" type="email" value="${h(st.email)}"></label>
       <label class="f">VAT threshold (R)<input name="vatThreshold" type="number" min="0" value="${h(st.vatThreshold)}"></label></div></div>`)}
     ${panel('Opening hours',`<div class="fg">${[1,2,3,4,5,6,0].map(i=>{const hr=st.hours[i];return `<div class="g3"><label class="check"><input type="checkbox" name="open${i}" ${hr?'checked':''}> ${DAYS[i]}</label><input type="time" name="from${i}" value="${hr?hr[0]:'08:00'}" aria-label="${DAYS[i]} opens"><input type="time" name="to${i}" value="${hr?hr[1]:'17:00'}" aria-label="${DAYS[i]} closes"></div>`}).join('')}
@@ -340,6 +353,8 @@ function vStudio(){
     ${panel('People working in the space',`<div class="fg">${S.providers.map(p=>`<div class="g2"><label class="f">Name<input name="pname_${p.id}" value="${h(p.name)}"></label><label class="f">Role<input name="prole_${p.id}" value="${h(p.role)}"></label>
       ${p===S.providers[0]?`<p class="sub" style="grid-column:1/-1">This is you. Your treatments show on the main menu and count as your income.</p>`
         :`<label class="check" style="grid-column:1/-1"><input type="checkbox" name="pext_${p.id}" ${p.external?'checked':''}> Rents the space and runs her own business (her treatments show on her own page, and her income isn't counted as yours)</label>`}</div>`).join('<hr style="border:0;border-top:1px solid var(--line);width:100%">')}</div>`)}
+    ${panel('Backup',`<p class="sub" style="color:var(--ink)">Download a copy of your clients, bookings, money records and settings once a month, and keep it somewhere safe such as Google Drive. Receipt photos stay in the app.</p>
+      <p class="sub" style="margin:8px 0">${st.lastBackup?'Last backup: '+fmtDate(st.lastBackup):'No backup yet.'}</p><button type="button" class="btn" data-act="backup">Download a backup</button>`)}
     <div class="row"><button class="btn pri">Save settings</button>${S.example?'<button type="button" class="btn danger" data-act="resetAsk">Clear example data</button>':''}${LIVE?'<button type="button" class="btn" data-act="logout">Sign out</button>':''}</div></form>`;
   }
   return `<div class="pagehead"><div><p class="eyebrow">Studio</p><h1>Run the studio</h1></div></div>
@@ -411,6 +426,8 @@ function vBook(){
     <label class="f">Email (optional)<input name="email" type="email" autocomplete="email"></label>
     <label class="f">Anything we should know? (allergies, pregnancy, first visit)<textarea name="notes"></textarea></label>
     <label class="check"><input type="checkbox" required name="policy"> I understand that cancellations or rescheduling need 24 hours' notice.</label>
+    <details class="privacy"><summary>How we look after your details</summary><p>${h(privacyText())}</p></details>
+    <label class="check"><input type="checkbox" required name="consent"> I agree that ${h(S.settings.business)} may keep my details and notes, including health information, to manage my bookings and treatments.</label>
     <button class="btn pri" style="justify-self:start">Request ${fmtDate(B.date)} at ${B.time}</button></form></div>`:''}`;
 }
 function vChat(){
@@ -484,7 +501,7 @@ function clientView(c){
     ${c.notes?`<p class="note" style="margin:12px 0">${h(c.notes)}</p>`:''}
     <p class="sub" style="margin:8px 0">${s.visits} visits · ${R0(s.spent)} spent${s.last?' · last '+fmtDate(s.last):''}</p>
     <div class="list">${bs.map(b=>`<div class="li"><div><b style="font-weight:500">${h(svc(b.serviceId)?.name)}</b><div class="sub">${fmtDate(b.date)} at ${b.time}</div></div>${pill(b.status)}</div>`).join('')||'<p class="empty">No visits yet.</p>'}</div>
-    <div class="mf"><button class="btn" data-act="clientEdit" data-id="${c.id}">Edit</button><button class="btn pri" data-act="bookFor" data-id="${c.id}">Book for ${h(c.name.split(' ')[0])}</button></div>`);
+    <div class="mf"><button class="btn danger" data-act="clientDelAsk" data-id="${c.id}" style="margin-right:auto">Delete client</button><button class="btn" data-act="clientEdit" data-id="${c.id}">Edit</button><button class="btn pri" data-act="bookFor" data-id="${c.id}">Book for ${h(c.name.split(' ')[0])}</button></div>`);
 }
 function expModal(e){
   const isNew=!e;e=e||{date:today(),amount:'',cat:'Consumables',supplier:'',note:''};
@@ -581,7 +598,7 @@ const FORMS={
     let x;if(id)x=Object.assign(S.stock.find(y=>y.id===id),d);else{x={id:uid(),...d};S.stock.push(x)}sync('stock',x)},
   faq(fd,id){const d={q:fd.get('q'),kw:fd.get('kw'),a:fd.get('a')};let x;if(id)x=Object.assign(S.faq.find(y=>y.id===id),d);else{x={id:uid(),...d,sort:S.faq.length};S.faq.push(x)}sync('faq',x);U.chat=[]},
   task(fd){const x={id:uid(),text:fd.get('text'),due:fd.get('due')||'',done:false};S.tasks.push(x);sync('tasks',x)},
-  settings(fd){const st=S.settings;['business','whatsapp','address','email','policy','menuNote'].forEach(k=>st[k]=fd.get(k).trim());st.vatThreshold=Number(fd.get('vatThreshold'))||1000000;st.slotStep=Number(fd.get('slotStep'));
+  settings(fd){const st=S.settings;['business','whatsapp','address','email','policy','menuNote','privacy'].forEach(k=>st[k]=fd.get(k).trim());st.vatThreshold=Number(fd.get('vatThreshold'))||1000000;st.slotStep=Number(fd.get('slotStep'));
     st.hours=[0,1,2,3,4,5,6].map(i=>fd.get('open'+i)?[fd.get('from'+i),fd.get('to'+i)]:null);
     S.providers.forEach(p=>{p.name=fd.get('pname_'+p.id);p.role=fd.get('prole_'+p.id);p.external=p!==S.providers[0]&&!!fd.get('pext_'+p.id);sync('providers',p)});syncStudio();toast('Settings saved')},
   async clientBook(fd,_id,form){
@@ -639,6 +656,11 @@ const ACT={
   clientOpen:id=>{const c=client(id);if(c)clientView(c);return'keep'},
   clientNew:()=>{clientModal();return'keep'},
   clientEdit:id=>{clientModal(client(id));return'keep'},
+  clientDelAsk:id=>{const c=client(id);modal('Delete client?',`<p>This removes <b>${h(c.name)}</b>'s name, number, email and notes, and the notes on her bookings. Upcoming bookings are cancelled. Past treatments stay in your money records without a name.</p><p class="sub" style="margin-top:8px">Use this when a client asks you to delete her details. It can't be undone.</p><div class="mf"><button class="btn" data-act="close">Keep</button><button class="btn pri" data-act="clientDel" data-id="${c.id}">Delete</button></div>`);return'keep'},
+  clientDel:id=>{const t=today();
+    S.bookings.filter(b=>b.clientId===id).forEach(b=>{b.clientId='';b.notes='';if(['requested','confirmed'].includes(b.status)&&b.date>=t)b.status='cancelled';sync('bookings',b)});
+    S.clients=S.clients.filter(c=>c.id!==id);drop('clients',id);closeModal();toast('Client deleted')},
+  backup:()=>{downloadBackup();return'keep'},
   bookFor:id=>{bookingModal({clientId:id});return'keep'},
   monthShift:n=>{U.month=addMonths(U.month,+n)},
   monthNow:()=>{U.month=today().slice(0,7)},

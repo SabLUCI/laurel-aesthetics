@@ -224,3 +224,7 @@ details.help:first-of-type{border-top:0}
 details.help summary{cursor:pointer;font:600 1.1rem var(--display);padding:10px 0;list-style-position:outside}
 .helpbody{display:grid;gap:10px;padding:0 0 14px;max-width:65ch}
 .helpbody ul,.helpbody ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
+details.privacy{font-size:.85rem;color:var(--muted)}
+details.privacy summary{cursor:pointer;color:var(--ink);text-decoration:underline;text-decoration-color:var(--tint-2)}
+details.privacy p{margin-top:6px}
+.check input[type=checkbox]{flex:0 0 auto;width:18px;height:18px;margin-top:2px;accent-color:var(--accent)}
